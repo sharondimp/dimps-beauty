@@ -459,6 +459,7 @@ function Checkout({ cart, setPage }) {
   const handlePlace = () => {
     if (!form.name || !form.phone || !form.address) { setError("Please fill in your name, phone number and address."); return; }
     setPlaced(true);
+    localStorage.removeItem("cart");
   };
 
   if (placed) return (
