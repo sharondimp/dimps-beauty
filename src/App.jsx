@@ -527,13 +527,14 @@ function Checkout({ cart, setPage }) {
 export default function App() {
   const [page, setPage] = useState("landing");
   const [cart, setCart] = useState(() => {
-  const saved = localStorage.getItem("cart");
-  return saved ? JSON.parse(saved) : [];
-});
+    const saved = localStorage.getItem("cart");
+    return saved ? JSON.parse(saved) : [];
+  });
 
-useEffect(() => {
-  localStorage.setItem("cart", JSON.stringify(cart));
-}, [cart]);
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
   const cartCount = cart.reduce((s,i) => s + i.qty, 0);
 
   const renderPage = () => {
@@ -550,4 +551,4 @@ useEffect(() => {
       {renderPage()}
     </>
   );
-    }
+}
