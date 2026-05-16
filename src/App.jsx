@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaInstagram, FaTiktok, FaPhone, FaEnvelope } from "react-icons/fa";
+import { FaInstagram, FaTiktok, FaPhone, FaEnvelope, FaWhatsapp } from "react-icons/fa";
 
 /* ───────── GLOBAL STYLES ───────── */
 const GlobalStyles = () => (
@@ -273,14 +273,13 @@ function Landing({ setPage }) {
               <p style={{fontSize:12,color:"#4a3a28",lineHeight:1.8}}>Luxury wigs for the confident woman. Lagos, Nigeria.</p>
             </div>
               <div>
-       <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,marginBottom:18,textTransform:"uppercase"}}>Get In Touch</p>
-       <p style={{fontSize:12,color:"#6a5a48",marginBottom:10,display:"flex",alignItems:"center",gap:8}}><FaPhone color="#b8924a"/> 09138866463</p>
-       <p style={{fontSize:12,color:"#6a5a48",marginBottom:10,display:"flex",alignItems:"center",gap:8}}><FaEnvelope color="#b8924a"/> dimpsbeautyempire01@gmail.com</p>
-    <div style={{display:"flex",gap:16,marginTop:12}}>
-       <a href="https://instagram.com/dimpsbeautyempire_" target="_blank" rel="noreferrer" style={{color:"#b8924a",fontSize:20}}><FaInstagram/></a>
-       <a href="https://tiktok.com/@dimpsbeautyempire_" target="_blank" rel="noreferrer" style={{color:"#b8924a",fontSize:20}}><FaTiktok/></a>
-    </div>
-  </div>
+  <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,marginBottom:18,textTransform:"uppercase"}}>Get In Touch</p>
+  <a href="tel:09138866463" style={{fontSize:12,color:"#6a5a48",marginBottom:10,display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}><FaPhone color="#b8924a"/> 09138866463</a>
+  <a href="mailto:dimpsbeautyempire01@gmail.com" style={{fontSize:12,color:"#6a5a48",marginBottom:10,display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}><FaEnvelope color="#b8924a"/> dimpsbeautyempire01@gmail.com</a>
+  <a href="https://wa.me/2349138866463" target="_blank" rel="noreferrer" style={{fontSize:12,color:"#6a5a48",marginBottom:10,display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}><FaWhatsapp color="#b8924a"/> +234 913 886 6463</a>
+  <a href="https://instagram.com/dimpsbeautyempire_" target="_blank" rel="noreferrer" style={{fontSize:12,color:"#6a5a48",marginBottom:10,display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}><FaInstagram color="#b8924a"/> dimpsbeautyempire_</a>
+  <a href="https://tiktok.com/@dimpsbeautyempire_" target="_blank" rel="noreferrer" style={{fontSize:12,color:"#6a5a48",display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}><FaTiktok color="#b8924a"/> dimpsbeautyempire_</a>
+</div>
           </div>
         
           <div style={{borderTop:"1px solid #161616",paddingTop:22,display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
