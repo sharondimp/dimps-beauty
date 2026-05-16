@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FaInstagram, FaTiktok, FaPhone, FaEnvelope, FaWhatsapp } from "react-icons/fa";
-
+import emailjs from "@emailjs/browser";
 /* ───────── GLOBAL STYLES ───────── */
 const GlobalStyles = () => (
   <style>{`
@@ -457,10 +457,30 @@ function Checkout({ cart, setPage }) {
   const set = (k,v) => setForm(prev => ({...prev,[k]:v}));
 
   const handlePlace = () => {
-    if (!form.name || !form.phone || !form.address) { setError("Please fill in your name, phone number and address."); return; }
-    setPlaced(true);
-    localStorage.removeItem("cart");
-  };
+  if (!form.name || !form.phone || !form.address) { setError("Please fill in your name, phone number and address."); return; }
+  
+  const orderItems = cart.map(i => `${i.name} × ${i.qty}`).join(", ");
+  const orderTotal = fmt(cart.reduce((s,i) => s + i.price * i.qty, 0));
+
+  emailjs.send(
+    "service_lm5bgk6",
+    "template_pt1o0b3",
+    {
+      customer_name: form.name,
+      customer_phone: form.phone,
+      customer_email: form.email,
+      customer_address: form.address,
+      customer_city: form.city,
+      customer_state: form.state,
+      order_items: orderItems,
+      order_total: orderTotal,
+    },
+    "wnDgfU8JigjpKDev-"
+  );
+
+  setPlaced(true);
+  localStorage.removeItem("cart");
+};
 
   if (placed) return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"100px 5%",textAlign:"center"}}>
