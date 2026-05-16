@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FaInstagram, FaTiktok, FaPhone, FaEnvelope } from "react-icons/fa";
 
 /* ───────── GLOBAL STYLES ───────── */
 const GlobalStyles = () => (
