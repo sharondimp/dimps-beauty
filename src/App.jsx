@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FaInstagram, FaTiktok, FaPhone, FaEnvelope } from "react-icons/fa";
 
 /* ───────── GLOBAL STYLES ───────── */
 const GlobalStyles = () => (
@@ -271,20 +272,16 @@ function Landing({ setPage }) {
               <div style={{fontSize:8,letterSpacing:5,color:"#b8924a",marginBottom:14}}>BEAUTY EMPIRE</div>
               <p style={{fontSize:12,color:"#4a3a28",lineHeight:1.8}}>Luxury wigs for the confident woman. Lagos, Nigeria.</p>
             </div>
-            <div>
-              <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,marginBottom:18,textTransform:"uppercase"}}>Quick Links</p>
-              {[["Home","landing"],["Shop","shop"],["Cart","cart"]].map(([l,p]) => (
-                <p key={l} style={{fontSize:12,color:"#6a5a48",marginBottom:10,cursor:"pointer",letterSpacing:1}}>{l}</p>
-              ))}
-            </div>
-            <div>
-              <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,marginBottom:18,textTransform:"uppercase"}}>Get In Touch</p>
-              <p style={{fontSize:12,color:"#6a5a48",marginBottom:10}}>📍 Lagos, Nigeria</p>
-              <p style={{fontSize:12,color:"#6a5a48",marginBottom:10}}>📞 +234 800 000 0000</p>
-              <p style={{fontSize:12,color:"#6a5a48",marginBottom:10}}>✉️ hello@dimpsbeauty.com</p>
-              <p style={{fontSize:12,color:"#6a5a48"}}>📸 @dimpsbeautyempire</p>
-            </div>
-          </div>
+              <div>
+       <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,marginBottom:18,textTransform:"uppercase"}}>Get In Touch</p>
+       <p style={{fontSize:12,color:"#6a5a48",marginBottom:10,display:"flex",alignItems:"center",gap:8}}><FaPhone color="#b8924a"/> 09138866463</p>
+       <p style={{fontSize:12,color:"#6a5a48",marginBottom:10,display:"flex",alignItems:"center",gap:8}}><FaEnvelope color="#b8924a"/> dimpsbeautyempire01@gmail.com</p>
+    <div style={{display:"flex",gap:16,marginTop:12}}>
+       <a href="https://instagram.com/dimpsbeautyempire_" target="_blank" rel="noreferrer" style={{color:"#b8924a",fontSize:20}}><FaInstagram/></a>
+       <a href="https://tiktok.com/@dimpsbeautyempire_" target="_blank" rel="noreferrer" style={{color:"#b8924a",fontSize:20}}><FaTiktok/></a>
+    </div>
+  </div>
+        
           <div style={{borderTop:"1px solid #161616",paddingTop:22,display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
             <p style={{fontSize:10,color:"#2a2018",letterSpacing:2}}>© 2026 DIMP'S BEAUTY EMPIRE. ALL RIGHTS RESERVED.</p>
             <p style={{fontSize:10,color:"#2a2018",letterSpacing:1}}>MADE WITH 🖤</p>
