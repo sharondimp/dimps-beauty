@@ -469,6 +469,7 @@ function Checkout({ cart, setPage }) {
         <p style={{fontSize:13,color:"#6a5a48",lineHeight:1.9,maxWidth:380,margin:"0 auto 36px"}}>
           Thank you, {form.name}. We've received your order and will contact you at <strong style={{color:"#b8924a"}}>{form.phone}</strong> to confirm delivery.
         </p>
+        {error && <p style={{color:"#c0392b",fontSize:12,marginBottom:12,letterSpacing:1}}>{error}</p>}
         <button className="gold-btn" style={{padding:"14px 36px",fontSize:10,borderRadius:0}} onClick={() => setPage("landing")}>
           Back to Home
         </button>
