@@ -281,6 +281,7 @@ function Landing({ setPage }) {
        <a href="https://tiktok.com/@dimpsbeautyempire_" target="_blank" rel="noreferrer" style={{color:"#b8924a",fontSize:20}}><FaTiktok/></a>
     </div>
   </div>
+          </div>
         
           <div style={{borderTop:"1px solid #161616",paddingTop:22,display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
             <p style={{fontSize:10,color:"#2a2018",letterSpacing:2}}>© 2026 DIMP'S BEAUTY EMPIRE. ALL RIGHTS RESERVED.</p>
