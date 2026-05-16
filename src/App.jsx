@@ -457,7 +457,7 @@ function Checkout({ cart, setPage }) {
   const set = (k,v) => setForm(prev => ({...prev,[k]:v}));
 
   const handlePlace = () => {
-    if (!form.name || !form.phone || !form.address) { alert("Please fill in your name, phone number and address."); return; }
+    if (!form.name || !form.phone || !form.address) { setError("Please fill in your name, phone number and address."); return; }
     setPlaced(true);
   };
 
