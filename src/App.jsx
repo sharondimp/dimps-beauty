@@ -452,6 +452,7 @@ function Cart({ cart, setCart, setPage }) {
 function Checkout({ cart, setPage }) {
   const [form, setForm] = useState({name:"",phone:"",email:"",address:"",city:"",state:""});
   const [placed, setPlaced] = useState(false);
+  const [error, setError] = useState("");
   const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
   const set = (k,v) => setForm(prev => ({...prev,[k]:v}));
 
