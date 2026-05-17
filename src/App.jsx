@@ -463,7 +463,7 @@ function Checkout({ cart, setPage }) {
   const orderTotal = fmt(cart.reduce((s,i) => s + i.price * i.qty, 0));
 
   emailjs.send(
-    "service_lm5bgk6",
+    "service_je73a2q",
     "template_pt1o0b3",
     {
       customer_name: form.name,
