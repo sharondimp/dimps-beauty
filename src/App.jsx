@@ -477,30 +477,43 @@ function Checkout({ cart, setPage }) {
   const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
   const set = (k,v) => setForm(prev => ({...prev,[k]:v}));
 
-  const handlePlace = () => {
+   const handlePlace = () => {
   if (!form.name || !form.phone || !form.address) { setError("Please fill in your name, phone number and address."); return; }
-  
+
   const orderItems = cart.map(i => `${i.name} × ${i.qty}`).join(", ");
   const orderTotal = fmt(cart.reduce((s,i) => s + i.price * i.qty, 0));
+  const totalInKobo = cart.reduce((s,i) => s + i.price * i.qty, 0) * 100;
 
-  emailjs.send(
-    "service_je73a2q",
-    "template_pt1o0b3",
-    {
-      customer_name: form.name,
-      customer_phone: form.phone,
-      customer_email: form.email,
-      customer_address: form.address,
-      customer_city: form.city,
-      customer_state: form.state,
-      order_items: orderItems,
-      order_total: orderTotal,
+  const handler = window.PaystackPop.setup({
+    key: "pk_live_25a2fed5c09e787eecd1e39f895399381b00ca13",
+    email: form.email || "customer@dimpsbeauty.com",
+    amount: totalInKobo,
+    currency: "NGN",
+    ref: "DBE" + Date.now(),
+    callback: function(response) {
+      emailjs.send(
+        "service_je73a2q",
+        "template_pt1o0b3",
+        {
+          customer_name: form.name,
+          customer_phone: form.phone,
+          customer_email: form.email,
+          customer_address: form.address,
+          customer_city: form.city,
+          customer_state: form.state,
+          order_items: orderItems,
+          order_total: orderTotal,
+        },
+        "wnDgfU8JigjpKDev-"
+      );
+      setPlaced(true);
+      localStorage.removeItem("cart");
     },
-    "wnDgfU8JigjpKDev-"
-  );
-
-  setPlaced(true);
-  localStorage.removeItem("cart");
+    onClose: function() {
+      setError("Payment was cancelled. Please try again.");
+    }
+  });
+  handler.openIframe();
 };
 
   if (placed) return (
@@ -550,12 +563,9 @@ function Checkout({ cart, setPage }) {
           <input className="field" style={{marginBottom:0}} placeholder="State" value={form.state} onChange={e=>set("state",e.target.value)} />
         </div>
 
-        <p style={{fontSize:10,color:"#3a3028",letterSpacing:1,margin:"18px 0 24px",lineHeight:1.9}}>
-          🔒 Paystack payment integration coming soon. We'll contact you to arrange payment after you place your order.
-        </p>
          {error && <p style={{color:"#c0392b",fontSize:12,marginBottom:12,letterSpacing:1}}>{error}</p>}
         <button className="gold-btn" style={{width:"100%",padding:"16px 0",fontSize:11,borderRadius:0,marginBottom:12}} onClick={handlePlace}>
-          Place Order ✦
+          Place Order & Pay ✦ 🖤
         </button>
         <button className="outline-btn" style={{width:"100%",padding:"14px 0",fontSize:10,borderRadius:0}} onClick={() => { setPage("cart"); window.scrollTo(0,0); }}>
           ← Back to Cart
