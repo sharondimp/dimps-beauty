@@ -76,12 +76,12 @@ const GlobalStyles = () => (
 
 /* ───────── DATA ───────── */
 const PRODUCTS = [
-  { id:1, name:"Obsidian Lace Front",   price:85000, tag:"BEST SELLER", short:'Jet black · 26" · HD lace',         detail:"Premium HD lace front wig in jet black. 180% density for a full, natural look. Pre-plucked hairline with baby hairs. Fits all head sizes.", bg:"#141414" },
-  { id:2, name:"Golden Hour Body Wave", price:72000, tag:"NEW IN",      short:'Honey blonde ombré · 22" · wavy',   detail:"Stunning honey-to-blonde ombré body wave. Soft, bouncy curls that hold shape. No shedding, no tangling. Beginner-friendly install.", bg:"#1c1407" },
-  { id:3, name:"Noir Closure Wig",      price:60000, tag:"NEW IN",      short:'Natural black · 20" · 4×4',         detail:"4×4 lace closure wig in natural black. Silky straight texture with a natural part. Easy to install, perfect for everyday glam.", bg:"#0f0f0f" },
-  { id:4, name:"Empress Straight",      price:78000, tag:"BEST SELLER", short:'Jet black · 28" · bone straight',   detail:"Bone straight raw hair wig. Ultra-sleek and glossy finish. 28 inches of pure drama. Can be dyed and heat-styled freely.", bg:"#0d0d0d" },
-  { id:5, name:"Burgundy Goddess",      price:68000, tag:"HOT",         short:'Wine red · 24" · full lace',        detail:"Deep burgundy full lace wig. Rich, bold colour that commands attention. 24 inches of lush, voluminous hair. Perfect for special occasions.", bg:"#150506" },
-  { id:6, name:"Ivory Dream",           price:90000, tag:"LUXURY",      short:'Platinum blonde · 30" · raw',       detail:"Top-tier raw Vietnamese platinum blonde hair. 30 inches of silky, flowing luxury. Our most exclusive piece — limited stock.", bg:"#1a1710" },
+  { id:1, name:"Obsidian Lace Front",   price:85000, tag:"BEST SELLER", category:"Bone Straight",      short:'Jet black · 26" · HD lace',         detail:"Premium HD lace front wig in jet black. 180% density for a full, natural look. Pre-plucked hairline with baby hairs. Fits all head sizes.", bg:"#141414" },
+  { id:2, name:"Golden Hour Body Wave", price:72000, tag:"NEW IN",      category:"Wavy Wigs",           short:'Honey blonde ombré · 22" · wavy',   detail:"Stunning honey-to-blonde ombré body wave. Soft, bouncy curls that hold shape. No shedding, no tangling. Beginner-friendly install.", bg:"#1c1407" },
+  { id:3, name:"Noir Closure Wig",      price:60000, tag:"NEW IN",      category:"Straight Human Hair", short:'Natural black · 20" · 4×4',         detail:"4×4 lace closure wig in natural black. Silky straight texture with a natural part. Easy to install, perfect for everyday glam.", bg:"#0f0f0f" },
+  { id:4, name:"Empress Straight",      price:78000, tag:"BEST SELLER", category:"Bone Straight",      short:'Jet black · 28" · bone straight',   detail:"Bone straight raw hair wig. Ultra-sleek and glossy finish. 28 inches of pure drama. Can be dyed and heat-styled freely.", bg:"#0d0d0d" },
+  { id:5, name:"Burgundy Goddess",      price:68000, tag:"HOT",         category:"Wavy Wigs",           short:'Wine red · 24" · full lace',        detail:"Deep burgundy full lace wig. Rich, bold colour that commands attention. 24 inches of lush, voluminous hair. Perfect for special occasions.", bg:"#150506" },
+  { id:6, name:"Ivory Dream",           price:90000, tag:"LUXURY",      category:"Pixie Cut",           short:'Platinum blonde · 30" · raw',       detail:"Top-tier raw Vietnamese platinum blonde hair. 30 inches of silky, flowing luxury. Our most exclusive piece — limited stock.", bg:"#1a1710" },
 ];
 
 const fmt = (n) => "₦" + n.toLocaleString("en-NG");
@@ -345,6 +345,11 @@ function ProductModal({ product, onClose, onAddToCart }) {
 /* ───────── SHOP PAGE ───────── */
 function Shop({ setCart }) {
   const [modal, setModal] = useState(null);
+  const [activeCategory, setActiveCategory] = useState("All Wigs");
+
+  const CATEGORIES = ["All Wigs", "Bone Straight", "Straight Human Hair", "Wavy Wigs", "Curly Wigs", "Pixie Cut", "Coloured Wigs"];
+
+  const filtered = activeCategory === "All Wigs" ? PRODUCTS : PRODUCTS.filter(p => p.category === activeCategory);
 
   const addToCart = (product) => {
     setCart(prev => {
@@ -358,34 +363,50 @@ function Shop({ setCart }) {
     <div style={{minHeight:"100vh",paddingTop:72}}>
       <MarqueeStrip />
       <div style={{padding:"56px 5%"}}>
-        <div style={{textAlign:"center",marginBottom:48}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
           <p style={{fontSize:9,letterSpacing:5,color:"#b8924a",fontWeight:600,textTransform:"uppercase",marginBottom:14}}>Our Collection</p>
           <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(2rem,5vw,3.5rem)",fontWeight:600,color:"#f0e6d3"}}>Shop All Wigs</h1>
         </div>
 
-        <div className="grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,maxWidth:1000,margin:"0 auto"}}>
-          {PRODUCTS.map(p => (
-            <div key={p.id} className="card" onClick={() => setModal(p)} style={{overflow:"hidden"}}>
-              {/* Image area — replace bg div with <img> when you have product photos */}
-              <div style={{width:"100%",height:200,background:p.bg,display:"flex",alignItems:"flex-end",padding:10}}>
-                <span style={{fontSize:8,letterSpacing:2,background:"#b8924a",color:"#0d0d0d",padding:"3px 8px",fontWeight:700}}>{p.tag}</span>
-              </div>
-              <div style={{padding:"16px 14px"}}>
-                <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontWeight:600,color:"#f0e6d3",marginBottom:5}}>{p.name}</h3>
-                <p style={{fontSize:11,color:"#4a3a28",marginBottom:12,lineHeight:1.6}}>{p.short}</p>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontSize:15,color:"#b8924a",fontWeight:600,fontFamily:"'Cormorant Garamond',serif"}}>{fmt(p.price)}</span>
-                  <button className="outline-btn" style={{fontSize:9,padding:"6px 12px",borderRadius:0}}
-                    onClick={e => { e.stopPropagation(); addToCart(p); }}>
-                    + Cart
-                  </button>
-                </div>
-              </div>
-            </div>
+        {/* Category filters */}
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginBottom:40}}>
+          {CATEGORIES.map(cat => (
+            <button key={cat} onClick={() => setActiveCategory(cat)} style={{
+              background: activeCategory === cat ? "#b8924a" : "transparent",
+              color: activeCategory === cat ? "#0d0d0d" : "#b8924a",
+              border:"1px solid #b8924a", cursor:"pointer",
+              fontFamily:"'Montserrat',sans-serif", fontWeight:500,
+              fontSize:10, letterSpacing:2, textTransform:"uppercase",
+              padding:"8px 16px", transition:"all .3s",
+            }}>{cat}</button>
           ))}
         </div>
-      </div>
 
+        {filtered.length === 0 ? (
+          <p style={{textAlign:"center",color:"#4a3a28",fontSize:13,letterSpacing:1}}>No products in this category yet.</p>
+        ) : (
+          <div className="grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,maxWidth:1000,margin:"0 auto"}}>
+            {filtered.map(p => (
+              <div key={p.id} className="card" onClick={() => setModal(p)} style={{overflow:"hidden"}}>
+                <div style={{width:"100%",height:200,background:p.bg,display:"flex",alignItems:"flex-end",padding:10}}>
+                  <span style={{fontSize:8,letterSpacing:2,background:"#b8924a",color:"#0d0d0d",padding:"3px 8px",fontWeight:700}}>{p.tag}</span>
+                </div>
+                <div style={{padding:"16px 14px"}}>
+                  <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontWeight:600,color:"#f0e6d3",marginBottom:5}}>{p.name}</h3>
+                  <p style={{fontSize:11,color:"#4a3a28",marginBottom:12,lineHeight:1.6}}>{p.short}</p>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:15,color:"#b8924a",fontWeight:600,fontFamily:"'Cormorant Garamond',serif"}}>{fmt(p.price)}</span>
+                    <button className="outline-btn" style={{fontSize:9,padding:"6px 12px",borderRadius:0}}
+                      onClick={e => { e.stopPropagation(); addToCart(p); }}>
+                      + Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       {modal && <ProductModal product={modal} onClose={() => setModal(null)} onAddToCart={addToCart} />}
     </div>
   );
