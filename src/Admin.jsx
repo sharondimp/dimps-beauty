@@ -1,0 +1,98 @@
+import { useState } from "react";
+import { db } from "./firebase";
+import { collection, addDoc, deleteDoc, doc, getDocs } from "firebase/firestore";
+
+const ADMIN_PASSWORD = "dimps2026";
+const CATEGORIES = ["Bone Straight", "Straight Human Hair", "Wavy Wigs", "Curly Wigs", "Pixie Cut", "Coloured Wigs"];
+
+export default function Admin() {
+  const [authed, setAuthed] = useState(false);
+  const [password, setPassword] = useState("");
+  const [products, setProducts] = useState([]);
+  const [form, setForm] = useState({name:"",price:"",tag:"",category:"Bone Straight",short:"",detail:"",bg:"#111111"});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
+
+  const login = () => {
+    if (password === ADMIN_PASSWORD) {
+      setAuthed(true);
+      fetchProducts();
+    } else {
+      alert("Wrong password!");
+    }
+  };
+
+  const fetchProducts = async () => {
+    const snapshot = await getDocs(collection(db, "Products"));
+    setProducts(snapshot.docs.map(d => ({id: d.id, ...d.data()})));
+  };
+
+  const addProduct = async () => {
+    if (!form.name || !form.price) { alert("Name and price are required!"); return; }
+    setLoading(true);
+    await addDoc(collection(db, "Products"), {...form, price: Number(form.price)});
+    setSuccess("Product added!");
+    setForm({name:"",price:"",tag:"",category:"Bone Straight",short:"",detail:"",bg:"#111111"});
+    fetchProducts();
+    setLoading(false);
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const deleteProduct = async (id) => {
+    if (!window.confirm("Delete this product?")) return;
+    await deleteDoc(doc(db, "Products", id));
+    fetchProducts();
+  };
+
+  if (!authed) return (
+    <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:"#0f0f0f",border:"1px solid #2a2a2a",padding:"40px 32px",maxWidth:360,width:"100%"}}>
+        <h2 style={{fontFamily:"'Cormorant Garamond',serif",color:"#b8924a",fontSize:28,marginBottom:24,textAlign:"center"}}>Admin Access</h2>
+        <input type="password" placeholder="Enter password" value={password} onChange={e=>setPassword(e.target.value)}
+          style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif",fontSize:13,padding:"13px 16px",outline:"none",marginBottom:14,boxSizing:"border-box"}} />
+        <button onClick={login} style={{width:"100%",background:"linear-gradient(135deg,#b8924a,#e8c97a,#b8924a)",color:"#0d0d0d",border:"none",padding:"14px 0",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontWeight:600,letterSpacing:3,textTransform:"uppercase"}}>
+          Login
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{minHeight:"100vh",background:"#080808",padding:"40px 5%",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif"}}>
+      <h1 style={{fontFamily:"'Cormorant Garamond',serif",color:"#b8924a",fontSize:32,marginBottom:32}}>Admin Dashboard</h1>
+
+      {/* Add Product Form */}
+      <div style={{background:"#0f0f0f",border:"1px solid #2a2a2a",padding:"24px",marginBottom:40,maxWidth:600}}>
+        <h2 style={{fontSize:14,letterSpacing:3,color:"#b8924a",marginBottom:20,textTransform:"uppercase"}}>Add New Product</h2>
+        {success && <p style={{color:"#b8924a",marginBottom:12,fontSize:13}}>{success}</p>}
+        {[["name","Product Name"],["price","Price (numbers only)"],["tag","Tag (e.g. NEW IN)"],["short","Short description"],["detail","Full description"],["bg","Background color (e.g. #141414)"]].map(([key,placeholder]) => (
+          <input key={key} placeholder={placeholder} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}
+            style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif",fontSize:13,padding:"13px 16px",outline:"none",marginBottom:12,boxSizing:"border-box"}} />
+        ))}
+        <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
+          style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif",fontSize:13,padding:"13px 16px",outline:"none",marginBottom:16,boxSizing:"border-box"}}>
+          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <button onClick={addProduct} disabled={loading}
+          style={{background:"linear-gradient(135deg,#b8924a,#e8c97a,#b8924a)",color:"#0d0d0d",border:"none",padding:"14px 28px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontWeight:600,letterSpacing:3,textTransform:"uppercase"}}>
+          {loading ? "Adding..." : "Add Product ✦"}
+        </button>
+      </div>
+
+      {/* Products List */}
+      <h2 style={{fontSize:14,letterSpacing:3,color:"#b8924a",marginBottom:20,textTransform:"uppercase"}}>All Products ({products.length})</h2>
+      {products.map(p => (
+        <div key={p.id} style={{background:"#0f0f0f",border:"1px solid #1c1c1c",padding:"16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,color:"#f0e6d3"}}>{p.name}</p>
+            <p style={{fontSize:11,color:"#6a5a48"}}>₦{p.price?.toLocaleString()} · {p.category} · {p.tag}</p>
+          </div>
+          <button onClick={() => deleteProduct(p.id)}
+            style={{background:"transparent",border:"1px solid #c0392b",color:"#c0392b",padding:"6px 14px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>
+            Delete
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+          }
