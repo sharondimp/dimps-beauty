@@ -3,6 +3,7 @@ import { FaInstagram, FaTiktok, FaPhone, FaEnvelope, FaWhatsapp } from "react-ic
 import emailjs from "@emailjs/browser";
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
+import Admin from "./Admin";
 
 /* ───────── GLOBAL STYLES ───────── */
 const GlobalStyles = () => (
@@ -591,6 +592,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
+  useEffect(() => {
+  if (window.location.hash === "#admin") setPage("admin");
+}, []);
 
   const cartCount = cart.reduce((s,i) => s + i.qty, 0);
 
@@ -598,6 +602,7 @@ export default function App() {
     if (page === "shop")     return <Shop setCart={setCart} />;
     if (page === "cart")     return <Cart cart={cart} setCart={setCart} setPage={setPage} />;
     if (page === "checkout") return <Checkout cart={cart} setPage={setPage} />;
+    if (page === "admin") return <Admin />;
     return <Landing setPage={setPage} />;
   };
 
