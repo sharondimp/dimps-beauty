@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { FaInstagram, FaTiktok, FaPhone, FaEnvelope, FaWhatsapp } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
+import { db } from "./firebase";
+import { collection, getDocs } from "firebase/firestore";
+
 /* ───────── GLOBAL STYLES ───────── */
 const GlobalStyles = () => (
   <style>{`
@@ -74,15 +77,7 @@ const GlobalStyles = () => (
   `}</style>
 );
 
-/* ───────── DATA ───────── */
-const PRODUCTS = [
-  { id:1, name:"Obsidian Lace Front",   price:85000, tag:"BEST SELLER", category:"Bone Straight",      short:'Jet black · 26" · HD lace',         detail:"Premium HD lace front wig in jet black. 180% density for a full, natural look. Pre-plucked hairline with baby hairs. Fits all head sizes.", bg:"#141414" },
-  { id:2, name:"Golden Hour Body Wave", price:72000, tag:"NEW IN",      category:"Wavy Wigs",           short:'Honey blonde ombré · 22" · wavy',   detail:"Stunning honey-to-blonde ombré body wave. Soft, bouncy curls that hold shape. No shedding, no tangling. Beginner-friendly install.", bg:"#1c1407" },
-  { id:3, name:"Noir Closure Wig",      price:60000, tag:"NEW IN",      category:"Straight Human Hair", short:'Natural black · 20" · 4×4',         detail:"4×4 lace closure wig in natural black. Silky straight texture with a natural part. Easy to install, perfect for everyday glam.", bg:"#0f0f0f" },
-  { id:4, name:"Empress Straight",      price:78000, tag:"BEST SELLER", category:"Bone Straight",      short:'Jet black · 28" · bone straight',   detail:"Bone straight raw hair wig. Ultra-sleek and glossy finish. 28 inches of pure drama. Can be dyed and heat-styled freely.", bg:"#0d0d0d" },
-  { id:5, name:"Burgundy Goddess",      price:68000, tag:"HOT",         category:"Wavy Wigs",           short:'Wine red · 24" · full lace',        detail:"Deep burgundy full lace wig. Rich, bold colour that commands attention. 24 inches of lush, voluminous hair. Perfect for special occasions.", bg:"#150506" },
-  { id:6, name:"Ivory Dream",           price:90000, tag:"LUXURY",      category:"Pixie Cut",           short:'Platinum blonde · 30" · raw',       detail:"Top-tier raw Vietnamese platinum blonde hair. 30 inches of silky, flowing luxury. Our most exclusive piece — limited stock.", bg:"#1a1710" },
-];
+
 
 const fmt = (n) => "₦" + n.toLocaleString("en-NG");
 const MARQUEE = "DIMP'S BEAUTY EMPIRE  ✦  CROWNED IN CONFIDENCE  ✦  LUXURY WIGS LAGOS  ✦  ";
@@ -345,11 +340,21 @@ function ProductModal({ product, onClose, onAddToCart }) {
 /* ───────── SHOP PAGE ───────── */
 function Shop({ setCart }) {
   const [modal, setModal] = useState(null);
+  const [products, setProducts] = useState([]);
+
+useEffect(() => {
+  const fetchProducts = async () => {
+    const snapshot = await getDocs(collection(db, "Products"));
+    const data = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    setProducts(data);
+  };
+  fetchProducts();
+}, []);
   const [activeCategory, setActiveCategory] = useState("All Wigs");
 
   const CATEGORIES = ["All Wigs", "Bone Straight", "Straight Human Hair", "Wavy Wigs", "Curly Wigs", "Pixie Cut", "Coloured Wigs"];
 
-  const filtered = activeCategory === "All Wigs" ? PRODUCTS : PRODUCTS.filter(p => p.category === activeCategory);
+  const filtered = activeCategory === "All Wigs" ? products : products.filter(p => p.category === activeCategory);
 
   const addToCart = (product) => {
     setCart(prev => {
