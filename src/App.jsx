@@ -144,7 +144,16 @@ function Navbar({ setPage, cartCount }) {
       }}>
         {/* LOGO — swap the box below with <img src="your-logo.jpg" style={{height:40}}/> when ready */}
         <div onClick={() => go("landing")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
-          <img src="/logo.jpg" style={{height:40,width:"auto",objectFit:"contain"}} />
+          <img 
+  src="/logo.jpg" 
+  style={{
+    height: "35px", 
+    width: "35px", // forcing a perfect square before rounding
+    objectFit: "cover", 
+    borderRadius: "50%" // makes it a clean circle
+  }} 
+/>
+
           <div>
             <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontWeight:700,letterSpacing:2,color:"#f0e6d3",lineHeight:1}}>DIMP'S</div>
             <div style={{fontSize:7,letterSpacing:5,color:"#b8924a",fontWeight:500}}>BEAUTY EMPIRE</div>
