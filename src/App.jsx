@@ -397,9 +397,12 @@ useEffect(() => {
           <div className="grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,maxWidth:1000,margin:"0 auto"}}>
             {filtered.map(p => (
               <div key={p.id} className="card" onClick={() => setModal(p)} style={{overflow:"hidden"}}>
-                <div style={{width:"100%",height:200,background:p.bg,display:"flex",alignItems:"flex-end",padding:10}}>
-                  <span style={{fontSize:8,letterSpacing:2,background:"#b8924a",color:"#0d0d0d",padding:"3px 8px",fontWeight:700}}>{p.tag}</span>
-                </div>
+                <div style={{width:"100%",height:200,background:p.bg,position:"relative",overflow:"hidden"}}>
+  {p.image && <img src={p.image} alt={p.name} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} />}
+  <div style={{position:"absolute",bottom:10,left:10}}>
+    <span style={{fontSize:8,letterSpacing:2,background:"#b8924a",color:"#0d0d0d",padding:"3px 8px",fontWeight:700}}>{p.tag}</span>
+  </div>
+</div>
                 <div style={{padding:"16px 14px"}}>
                   <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontWeight:600,color:"#f0e6d3",marginBottom:5}}>{p.name}</h3>
                   <p style={{fontSize:11,color:"#4a3a28",marginBottom:12,lineHeight:1.6}}>{p.short}</p>
