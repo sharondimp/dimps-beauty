@@ -3,6 +3,7 @@ import { db } from "./firebase";
 import { collection, addDoc, deleteDoc, doc, getDocs } from "firebase/firestore";
 
 const ADMIN_PASSWORD = "dimps2026";
+const IMGBB_API_KEY = "3c3465e192230bc0bca24a96d34d72f3";
 const CATEGORIES = ["Bone Straight", "Straight Human Hair", "Wavy Wigs", "Curly Wigs", "Pixie Cut", "Coloured Wigs"];
 
 export default function Admin() {
@@ -10,6 +11,9 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState({name:"",price:"",tag:"",category:"Bone Straight",short:"",detail:"",bg:"#111111"});
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
 
@@ -27,12 +31,40 @@ export default function Admin() {
     setProducts(snapshot.docs.map(d => ({id: d.id, ...d.data()})));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const uploadToImgBB = async () => {
+    if (!imageFile) return null;
+    setUploading(true);
+    const data = new FormData();
+    data.append("image", imageFile);
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: data,
+    });
+    const json = await res.json();
+    setUploading(false);
+    return json.data?.url || null;
+  };
+
   const addProduct = async () => {
     if (!form.name || !form.price) { alert("Name and price are required!"); return; }
     setLoading(true);
-    await addDoc(collection(db, "Products"), {...form, price: Number(form.price)});
+    const imageUrl = await uploadToImgBB();
+    await addDoc(collection(db, "Products"), {
+      ...form,
+      price: Number(form.price),
+      image: imageUrl || "",
+    });
     setSuccess("Product added!");
     setForm({name:"",price:"",tag:"",category:"Bone Straight",short:"",detail:"",bg:"#111111"});
+    setImageFile(null);
+    setImagePreview("");
     fetchProducts();
     setLoading(false);
     setTimeout(() => setSuccess(""), 3000);
@@ -44,12 +76,13 @@ export default function Admin() {
     fetchProducts();
   };
 
+  const inputStyle = {width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif",fontSize:13,padding:"13px 16px",outline:"none",marginBottom:12,boxSizing:"border-box"};
+
   if (!authed) return (
     <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:"#0f0f0f",border:"1px solid #2a2a2a",padding:"40px 32px",maxWidth:360,width:"100%"}}>
         <h2 style={{fontFamily:"'Cormorant Garamond',serif",color:"#b8924a",fontSize:28,marginBottom:24,textAlign:"center"}}>Admin Access</h2>
-        <input type="password" placeholder="Enter password" value={password} onChange={e=>setPassword(e.target.value)}
-          style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif",fontSize:13,padding:"13px 16px",outline:"none",marginBottom:14,boxSizing:"border-box"}} />
+        <input type="password" placeholder="Enter password" value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle} />
         <button onClick={login} style={{width:"100%",background:"linear-gradient(135deg,#b8924a,#e8c97a,#b8924a)",color:"#0d0d0d",border:"none",padding:"14px 0",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontWeight:600,letterSpacing:3,textTransform:"uppercase"}}>
           Login
         </button>
@@ -65,34 +98,52 @@ export default function Admin() {
       <div style={{background:"#0f0f0f",border:"1px solid #2a2a2a",padding:"24px",marginBottom:40,maxWidth:600}}>
         <h2 style={{fontSize:14,letterSpacing:3,color:"#b8924a",marginBottom:20,textTransform:"uppercase"}}>Add New Product</h2>
         {success && <p style={{color:"#b8924a",marginBottom:12,fontSize:13}}>{success}</p>}
+
         {[["name","Product Name"],["price","Price (numbers only)"],["tag","Tag (e.g. NEW IN)"],["short","Short description"],["detail","Full description"],["bg","Background color (e.g. #141414)"]].map(([key,placeholder]) => (
-          <input key={key} placeholder={placeholder} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}
-            style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif",fontSize:13,padding:"13px 16px",outline:"none",marginBottom:12,boxSizing:"border-box"}} />
+          <input key={key} placeholder={placeholder} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})} style={inputStyle} />
         ))}
+
         <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
-          style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif",fontSize:13,padding:"13px 16px",outline:"none",marginBottom:16,boxSizing:"border-box"}}>
+          style={{...inputStyle, marginBottom:16}}>
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <button onClick={addProduct} disabled={loading}
+
+        {/* Image Upload */}
+        <p style={{fontSize:10,letterSpacing:3,color:"#b8924a",textTransform:"uppercase",marginBottom:8}}>Product Image</p>
+        <input type="file" accept="image/*" onChange={handleImageChange}
+          style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#6a5a48",fontFamily:"Montserrat,sans-serif",fontSize:12,padding:"10px 16px",marginBottom:12,boxSizing:"border-box",cursor:"pointer"}} />
+
+        {imagePreview && (
+          <img src={imagePreview} alt="preview"
+            style={{width:"100%",height:180,objectFit:"cover",border:"1px solid #2a2a2a",marginBottom:16}} />
+        )}
+
+        <button onClick={addProduct} disabled={loading || uploading}
           style={{background:"linear-gradient(135deg,#b8924a,#e8c97a,#b8924a)",color:"#0d0d0d",border:"none",padding:"14px 28px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontWeight:600,letterSpacing:3,textTransform:"uppercase"}}>
-          {loading ? "Adding..." : "Add Product ✦"}
+          {uploading ? "Uploading Image..." : loading ? "Adding..." : "Add Product ✦"}
         </button>
       </div>
 
       {/* Products List */}
       <h2 style={{fontSize:14,letterSpacing:3,color:"#b8924a",marginBottom:20,textTransform:"uppercase"}}>All Products ({products.length})</h2>
       {products.map(p => (
-        <div key={p.id} style={{background:"#0f0f0f",border:"1px solid #1c1c1c",padding:"16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div>
-            <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,color:"#f0e6d3"}}>{p.name}</p>
-            <p style={{fontSize:11,color:"#6a5a48"}}>₦{p.price?.toLocaleString()} · {p.category} · {p.tag}</p>
+        <div key={p.id} style={{background:"#0f0f0f",border:"1px solid #1c1c1c",padding:"16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}>
+          <div style={{display:"flex",alignItems:"center",gap:14}}>
+            {p.image
+              ? <img src={p.image} alt={p.name} style={{width:52,height:52,objectFit:"cover",border:"1px solid #2a2a2a",flexShrink:0}} />
+              : <div style={{width:52,height:52,background:p.bg||"#111",border:"1px solid #2a2a2a",flexShrink:0}} />
+            }
+            <div>
+              <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,color:"#f0e6d3"}}>{p.name}</p>
+              <p style={{fontSize:11,color:"#6a5a48"}}>₦{p.price?.toLocaleString()} · {p.category} · {p.tag}</p>
+            </div>
           </div>
           <button onClick={() => deleteProduct(p.id)}
-            style={{background:"transparent",border:"1px solid #c0392b",color:"#c0392b",padding:"6px 14px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>
+            style={{background:"transparent",border:"1px solid #c0392b",color:"#c0392b",padding:"6px 14px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase",flexShrink:0}}>
             Delete
           </button>
         </div>
       ))}
     </div>
   );
-          }
+        }
