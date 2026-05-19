@@ -451,7 +451,9 @@ function Cart({ cart, setCart, setPage }) {
           <>
             {cart.map(item => (
               <div key={item.id} style={{display:"flex",alignItems:"center",gap:16,borderBottom:"1px solid #1a1a1a",paddingBottom:20,marginBottom:20}}>
-                <div style={{width:68,height:68,background:item.bg,border:"1px solid #222",flexShrink:0}}/>
+                <div style={{width:68,height:68,background:item.bg,border:"1px solid #222",flexShrink:0,overflow:"hidden",position:"relative"}}>
+  {item.image && <img src={item.image} alt={item.name} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} />}
+</div>
                 <div style={{flex:1}}>
                   <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,color:"#f0e6d3",marginBottom:4}}>{item.name}</h3>
                   <p style={{fontSize:11,color:"#4a3a28"}}>{fmt(item.price)} each</p>
