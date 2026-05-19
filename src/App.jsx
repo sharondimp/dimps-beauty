@@ -180,7 +180,7 @@ function Navbar({ setPage, cartCount }) {
               }}>{cartCount}</span>
             )}
           </button>
-          <button onClick={() => setMob(!mob)} style={{
+          <button onClick={() => setMob(true)} style={{
             background:"none",border:"none",color:"#f0e6d3",fontSize:22,cursor:"pointer",
             display:"none",
           }} id="mob-burger">☰</button>
@@ -190,7 +190,7 @@ function Navbar({ setPage, cartCount }) {
       {/* Mobile fullscreen menu */}
       {mob && (
         <div style={{
-          position:"fixed",inset:0,zIndex:290,
+          position:"fixed",inset:0,zIndex:500,
           background:"rgba(8,8,8,0.97)",
           display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:36,
           animation:"fadeIn .3s ease",
