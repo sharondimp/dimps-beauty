@@ -246,7 +246,6 @@ function Landing({ setPage }) {
             </button>
           </div>
         </div>
-        <p style={{position:"absolute",bottom:28,fontSize:9,letterSpacing:4,color:"#2a2018",textTransform:"uppercase",zIndex:2}}>scroll down</p>
       </section>
 
       <MarqueeStrip />
