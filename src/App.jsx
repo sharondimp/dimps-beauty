@@ -142,13 +142,9 @@ function Navbar({ setPage, cartCount }) {
         borderBottom: scrolled ? "1px solid #1a1a1a" : "none",
         transition:"all .4s",
       }}>
-        {/* LOGO — swap the box below with <img src="your-logo.png" style={{height:40}}/> when ready */}
+        {/* LOGO — swap the box below with <img src="your-logo.jpg" style={{height:40}}/> when ready */}
         <div onClick={() => go("landing")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
-          <div style={{
-            width:40,height:40,border:"1px solid #b8924a",flexShrink:0,
-            display:"flex",alignItems:"center",justifyContent:"center",
-            fontSize:8,letterSpacing:1,color:"#b8924a",fontWeight:600,
-          }}>LOGO</div>
+          <img src="/logo.jpg" style={{height:40,width:"auto",objectFit:"contain"}} />
           <div>
             <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontWeight:700,letterSpacing:2,color:"#f0e6d3",lineHeight:1}}>DIMP'S</div>
             <div style={{fontSize:7,letterSpacing:5,color:"#b8924a",fontWeight:500}}>BEAUTY EMPIRE</div>
