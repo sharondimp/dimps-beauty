@@ -485,50 +485,58 @@ function Cart({ cart, setCart, setPage }) {
 
 /* ───────── CHECKOUT PAGE ───────── */
 function Checkout({ cart, setPage }) {
-  const [form, setForm] = useState({name:"",phone:"",email:"",address:"",city:"",state:""});
+  const [form, setForm] = useState({name:"",phone:"",email:"",address:"",city:"",state:"",delivery:""});
   const [placed, setPlaced] = useState(false);
   const [error, setError] = useState("");
-  const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
   const set = (k,v) => setForm(prev => ({...prev,[k]:v}));
 
-   const handlePlace = () => {
-  if (!form.name || !form.phone || !form.address) { setError("Please fill in your name, phone number and address."); return; }
+  const DELIVERY_FEES = {pickup:0, lagos:4000, outside:7000};
+  const deliveryFee = DELIVERY_FEES[form.delivery] || 0;
+  const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  const total = subtotal + deliveryFee;
 
-  const orderItems = cart.map(i => `${i.name} × ${i.qty}`).join(", ");
-  const orderTotal = fmt(cart.reduce((s,i) => s + i.price * i.qty, 0));
-  const totalInKobo = cart.reduce((s,i) => s + i.price * i.qty, 0) * 100;
+  const handlePlace = () => {
+    if (!form.name || !form.phone) { setError("Please fill in your name and phone number."); return; }
+    if (!form.delivery) { setError("Please select a delivery option."); return; }
+    if (form.delivery !== "pickup" && !form.address) { setError("Please enter your delivery address."); return; }
 
-  const handler = window.PaystackPop.setup({
-    key: "pk_live_25a2fed5c09e787eecd1e39f895399381b00ca13",
-    email: form.email || "customer@dimpsbeauty.com",
-    amount: totalInKobo,
-    currency: "NGN",
-    ref: "DBE" + Date.now(),
-    callback: function(response) {
-      emailjs.send(
-        "service_je73a2q",
-        "template_pt1o0b3",
-        {
-          customer_name: form.name,
-          customer_phone: form.phone,
-          customer_email: form.email,
-          customer_address: form.address,
-          customer_city: form.city,
-          customer_state: form.state,
-          order_items: orderItems,
-          order_total: orderTotal,
-        },
-        "wnDgfU8JigjpKDev-"
-      );
-      setPlaced(true);
-      localStorage.removeItem("cart");
-    },
-    onClose: function() {
-      setError("Payment was cancelled. Please try again.");
-    }
-  });
-  handler.openIframe();
-};
+    const orderItems = cart.map(i => `${i.name} × ${i.qty}`).join(", ");
+    const orderTotal = fmt(total);
+    const totalInKobo = total * 100;
+
+    const handler = window.PaystackPop.setup({
+      key: "pk_live_25a2fed5c09e787eecd1e39f895399381b00ca13",
+      email: form.email || "customer@dimpsbeauty.com",
+      amount: totalInKobo,
+      currency: "NGN",
+      ref: "DBE" + Date.now(),
+      callback: function(response) {
+        emailjs.send(
+          "service_je73a2q",
+          "template_pt1o0b3",
+          {
+            customer_name: form.name,
+            customer_phone: form.phone,
+            customer_email: form.email,
+            customer_address: form.delivery === "pickup" ? "PICK UP" : form.address,
+            customer_city: form.city,
+            customer_state: form.state,
+            order_items: orderItems,
+            order_total: orderTotal,
+            delivery_option: form.delivery === "pickup" ? "Pick Up (University of Lagos / Yaba Bridge / Apapa)" : form.delivery === "lagos" ? "Lagos Delivery" : "Outside Lagos",
+            delivery_fee: fmt(deliveryFee),
+          },
+          "wnDgfU8JigjpKDev-"
+        );
+        setPlaced(true);
+        localStorage.removeItem("cart");
+      },
+      onClose: function() {
+        setError("Payment was cancelled. Please try again.");
+      }
+    });
+    handler.openIframe();
+  };
 
   if (placed) return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"100px 5%",textAlign:"center"}}>
@@ -560,24 +568,66 @@ function Checkout({ cart, setPage }) {
               <span style={{fontSize:12,color:"#b8924a"}}>{fmt(i.price*i.qty)}</span>
             </div>
           ))}
-          <div style={{borderTop:"1px solid #1c1c1c",marginTop:12,paddingTop:12,display:"flex",justifyContent:"space-between"}}>
-            <span style={{fontSize:10,letterSpacing:2,color:"#4a3a28",textTransform:"uppercase"}}>Total</span>
-            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,color:"#b8924a",fontWeight:700}}>{fmt(total)}</span>
+          <div style={{borderTop:"1px solid #1c1c1c",marginTop:12,paddingTop:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+              <span style={{fontSize:10,letterSpacing:2,color:"#4a3a28",textTransform:"uppercase"}}>Delivery</span>
+              <span style={{fontSize:12,color:"#b8924a"}}>{form.delivery ? (deliveryFee === 0 ? "FREE" : fmt(deliveryFee)) : "—"}</span>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between"}}>
+              <span style={{fontSize:10,letterSpacing:2,color:"#4a3a28",textTransform:"uppercase"}}>Total</span>
+              <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,color:"#b8924a",fontWeight:700}}>{fmt(total)}</span>
+            </div>
           </div>
         </div>
 
-        {/* Delivery form */}
+        {/* Delivery Details */}
         <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,textTransform:"uppercase",marginBottom:18}}>Delivery Details</p>
-        <input className="field" placeholder="Full Name *"        value={form.name}    onChange={e=>set("name",e.target.value)} />
-        <input className="field" placeholder="Phone Number *"     value={form.phone}   onChange={e=>set("phone",e.target.value)} />
-        <input className="field" placeholder="Email Address"      value={form.email}   onChange={e=>set("email",e.target.value)} />
-        <input className="field" placeholder="Delivery Address *" value={form.address} onChange={e=>set("address",e.target.value)} />
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-          <input className="field" style={{marginBottom:0}} placeholder="City"  value={form.city}  onChange={e=>set("city",e.target.value)} />
-          <input className="field" style={{marginBottom:0}} placeholder="State" value={form.state} onChange={e=>set("state",e.target.value)} />
+        <input className="field" placeholder="Full Name *"   value={form.name}  onChange={e=>set("name",e.target.value)} />
+        <input className="field" placeholder="Phone Number *" value={form.phone} onChange={e=>set("phone",e.target.value)} />
+        <input className="field" placeholder="Email Address"  value={form.email} onChange={e=>set("email",e.target.value)} />
+
+        {/* Delivery Option */}
+        <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,textTransform:"uppercase",marginBottom:12}}>Delivery Option</p>
+        <div style={{marginBottom:20}}>
+          {[
+            {label:"Pick Up — University of Lagos / Yaba Bridge / Apapa", value:"pickup", fee:0},
+            {label:"Lagos Delivery", value:"lagos", fee:4000},
+            {label:"Outside Lagos", value:"outside", fee:7000},
+          ].map(opt => (
+            <div key={opt.value} onClick={() => set("delivery", opt.value)} style={{
+              display:"flex",alignItems:"center",justifyContent:"space-between",
+              border:`1px solid ${form.delivery===opt.value?"#b8924a":"#2a2a2a"}`,
+              background:form.delivery===opt.value?"#1a1208":"#111",
+              padding:"13px 16px",marginBottom:8,cursor:"pointer",transition:"all .3s",
+            }}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{
+                  width:14,height:14,borderRadius:"50%",
+                  border:`2px solid ${form.delivery===opt.value?"#b8924a":"#444"}`,
+                  background:form.delivery===opt.value?"#b8924a":"transparent",
+                  flexShrink:0,
+                }}/>
+                <span style={{fontSize:12,color:form.delivery===opt.value?"#f0e6d3":"#6a5a48"}}>{opt.label}</span>
+              </div>
+              <span style={{fontSize:12,color:"#b8924a",fontWeight:600,flexShrink:0,marginLeft:8}}>
+                {opt.fee === 0 ? "FREE" : fmt(opt.fee)}
+              </span>
+            </div>
+          ))}
         </div>
 
-         {error && <p style={{color:"#c0392b",fontSize:12,marginBottom:12,letterSpacing:1}}>{error}</p>}
+        {/* Address — only if not pickup */}
+        {form.delivery && form.delivery !== "pickup" && (
+          <>
+            <input className="field" placeholder="Delivery Address *" value={form.address} onChange={e=>set("address",e.target.value)} />
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+              <input className="field" style={{marginBottom:0}} placeholder="City"  value={form.city}  onChange={e=>set("city",e.target.value)} />
+              <input className="field" style={{marginBottom:14}} placeholder="State" value={form.state} onChange={e=>set("state",e.target.value)} />
+            </div>
+          </>
+        )}
+
+        {error && <p style={{color:"#c0392b",fontSize:12,marginBottom:12,letterSpacing:1}}>{error}</p>}
         <button className="gold-btn" style={{width:"100%",padding:"16px 0",fontSize:11,borderRadius:0,marginBottom:12}} onClick={handlePlace}>
           Place Order & Pay ✦ 🖤
         </button>
@@ -587,7 +637,7 @@ function Checkout({ cart, setPage }) {
       </div>
     </div>
   );
-}
+              }
 
 /* ───────── APP ROOT ───────── */
 export default function App() {
