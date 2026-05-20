@@ -345,20 +345,23 @@ function ProductModal({ product, onClose, onAddToCart }) {
 function Shop({ setCart }) {
   const [modal, setModal] = useState(null);
   const [products, setProducts] = useState([]);
-
-useEffect(() => {
-  const fetchProducts = async () => {
-    const snapshot = await getDocs(collection(db, "Products"));
-    const data = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-    setProducts(data);
-  };
-  fetchProducts();
-}, []);
   const [activeCategory, setActiveCategory] = useState("All Wigs");
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const snapshot = await getDocs(collection(db, "Products"));
+      const data = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      setProducts(data);
+    };
+    fetchProducts();
+  }, []);
 
   const CATEGORIES = ["All Wigs", "Bone Straight", "Straight Human Hair", "Wavy Wigs", "Curly Wigs", "Pixie Cut", "Coloured Wigs"];
 
-  const filtered = activeCategory === "All Wigs" ? products : products.filter(p => p.category === activeCategory);
+  const filtered = products
+    .filter(p => activeCategory === "All Wigs" || p.category === activeCategory)
+    .filter(p => p.name?.toLowerCase().includes(search.toLowerCase()) || p.short?.toLowerCase().includes(search.toLowerCase()));
 
   const addToCart = (product) => {
     setCart(prev => {
@@ -377,6 +380,29 @@ useEffect(() => {
           <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(2rem,5vw,3.5rem)",fontWeight:600,color:"#f0e6d3"}}>Shop All Wigs</h1>
         </div>
 
+        {/* Search Bar */}
+        <div style={{maxWidth:400,margin:"0 auto 32px",position:"relative"}}>
+          <input
+            placeholder="Search wigs..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width:"100%",background:"#111",border:"1px solid #2a2a2a",
+              color:"#f0e6d3",fontFamily:"'Montserrat',sans-serif",fontSize:12,
+              padding:"12px 40px 12px 16px",outline:"none",boxSizing:"border-box",
+              letterSpacing:1, transition:"border-color .3s",
+            }}
+            onFocus={e => e.target.style.borderColor="#b8924a"}
+            onBlur={e => e.target.style.borderColor="#2a2a2a"}
+          />
+          {search && (
+            <button onClick={() => setSearch("")} style={{
+              position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",
+              background:"none",border:"none",color:"#b8924a",cursor:"pointer",fontSize:16,
+            }}>✕</button>
+          )}
+        </div>
+
         {/* Category filters */}
         <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginBottom:40}}>
           {CATEGORIES.map(cat => (
@@ -392,17 +418,19 @@ useEffect(() => {
         </div>
 
         {filtered.length === 0 ? (
-          <p style={{textAlign:"center",color:"#4a3a28",fontSize:13,letterSpacing:1}}>No products in this category yet.</p>
+          <p style={{textAlign:"center",color:"#4a3a28",fontSize:13,letterSpacing:1}}>
+            {search ? `No results for "${search}"` : "No products in this category yet."}
+          </p>
         ) : (
           <div className="grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,maxWidth:1000,margin:"0 auto"}}>
             {filtered.map(p => (
               <div key={p.id} className="card" onClick={() => setModal(p)} style={{overflow:"hidden"}}>
                 <div style={{width:"100%",height:200,background:p.bg,position:"relative",overflow:"hidden"}}>
-  {p.image && <img src={p.image} alt={p.name} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} />}
-  <div style={{position:"absolute",bottom:10,left:10}}>
-    <span style={{fontSize:8,letterSpacing:2,background:"#b8924a",color:"#0d0d0d",padding:"3px 8px",fontWeight:700}}>{p.tag}</span>
-  </div>
-</div>
+                  {p.image && <img src={p.image} alt={p.name} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} />}
+                  <div style={{position:"absolute",bottom:10,left:10}}>
+                    <span style={{fontSize:8,letterSpacing:2,background:"#b8924a",color:"#0d0d0d",padding:"3px 8px",fontWeight:700}}>{p.tag}</span>
+                  </div>
+                </div>
                 <div style={{padding:"16px 14px"}}>
                   <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontWeight:600,color:"#f0e6d3",marginBottom:5}}>{p.name}</h3>
                   <p style={{fontSize:11,color:"#4a3a28",marginBottom:12,lineHeight:1.6}}>{p.short}</p>
@@ -423,6 +451,7 @@ useEffect(() => {
     </div>
   );
 }
+  
 
 /* ───────── CART PAGE ───────── */
 function Cart({ cart, setCart, setPage }) {
