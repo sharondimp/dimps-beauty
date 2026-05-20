@@ -374,14 +374,14 @@ function Shop({ setCart }) {
   return (
     <div style={{minHeight:"100vh",paddingTop:72}}>
       <MarqueeStrip />
-      <div style={{padding:"56px 5%"}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
+      <div style={{padding:"32px 5%"}}>
+        <div style={{textAlign:"center",marginBottom:16}}>
           <p style={{fontSize:9,letterSpacing:5,color:"#b8924a",fontWeight:600,textTransform:"uppercase",marginBottom:14}}>Our Collection</p>
           <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(2rem,5vw,3.5rem)",fontWeight:600,color:"#f0e6d3"}}>Shop All Wigs</h1>
         </div>
 
         {/* Search Bar */}
-        <div style={{maxWidth:400,margin:"0 auto 32px",position:"relative"}}>
+        <div style={{maxWidth:400,margin:"0 auto 16px",position:"relative"}}>
           <input
             placeholder="Search wigs..."
             value={search}
@@ -404,7 +404,7 @@ function Shop({ setCart }) {
         </div>
 
         {/* Category filters */}
-        <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginBottom:40}}>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginBottom:20}}>
           {CATEGORIES.map(cat => (
             <button key={cat} onClick={() => setActiveCategory(cat)} style={{
               background: activeCategory === cat ? "#b8924a" : "transparent",
