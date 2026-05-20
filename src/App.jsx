@@ -403,19 +403,26 @@ function Shop({ setCart }) {
           )}
         </div>
 
-        {/* Category filters */}
-        <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginBottom:20}}>
-          {CATEGORIES.map(cat => (
-            <button key={cat} onClick={() => setActiveCategory(cat)} style={{
-              background: activeCategory === cat ? "#b8924a" : "transparent",
-              color: activeCategory === cat ? "#0d0d0d" : "#b8924a",
-              border:"1px solid #b8924a", cursor:"pointer",
-              fontFamily:"'Montserrat',sans-serif", fontWeight:500,
-              fontSize:10, letterSpacing:2, textTransform:"uppercase",
-              padding:"8px 16px", transition:"all .3s",
-            }}>{cat}</button>
-          ))}
-        </div>
+        {/* Category dropdown */}
+<div style={{maxWidth:400,margin:"0 auto 20px"}}>
+  <select value={activeCategory} onChange={e => setActiveCategory(e.target.value)}
+    style={{
+      width:"100%",background:"#111",border:"1px solid #2a2a2a",
+      color:"#f0e6d3",fontFamily:"'Montserrat',sans-serif",fontSize:11,
+      padding:"12px 16px",outline:"none",cursor:"pointer",
+      letterSpacing:2,textTransform:"uppercase",
+      transition:"border-color .3s",appearance:"none",
+      backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23b8924a' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+      backgroundRepeat:"no-repeat",backgroundPosition:"right 16px center",
+    }}
+    onFocus={e => e.target.style.borderColor="#b8924a"}
+    onBlur={e => e.target.style.borderColor="#2a2a2a"}
+  >
+    {CATEGORIES.map(cat => (
+      <option key={cat} value={cat} style={{background:"#111",color:"#f0e6d3"}}>{cat}</option>
+    ))}
+  </select>
+</div>
 
         {filtered.length === 0 ? (
           <p style={{textAlign:"center",color:"#4a3a28",fontSize:13,letterSpacing:1}}>
