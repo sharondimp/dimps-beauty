@@ -145,7 +145,7 @@ function Navbar({ setPage, cartCount }) {
         {/* LOGO — swap the box below with <img src="your-logo.jpg" style={{height:40}}/> when ready */}
         <div onClick={() => go("landing")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
           <img 
-  src="/logo.jpg" 
+  src="/logo.png" 
   style={{
     height: "35px", 
     width: "35px", // forcing a perfect square before rounding
