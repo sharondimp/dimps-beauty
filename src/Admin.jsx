@@ -10,17 +10,22 @@ export default function Admin() {
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState("");
   const [products, setProducts] = useState([]);
+  const [promos, setPromos] = useState([]);
   const [form, setForm] = useState({name:"",price:"",tag:"",category:"Bone Straight",short:"",detail:"",bg:"#111111"});
+  const [promoForm, setPromoForm] = useState({code:"",discount:""});
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [promoLoading, setPromoLoading] = useState(false);
   const [success, setSuccess] = useState("");
+  const [promoSuccess, setPromoSuccess] = useState("");
 
   const login = () => {
     if (password === ADMIN_PASSWORD) {
       setAuthed(true);
       fetchProducts();
+      fetchPromos();
     } else {
       alert("Wrong password!");
     }
@@ -29,6 +34,11 @@ export default function Admin() {
   const fetchProducts = async () => {
     const snapshot = await getDocs(collection(db, "Products"));
     setProducts(snapshot.docs.map(d => ({id: d.id, ...d.data()})));
+  };
+
+  const fetchPromos = async () => {
+    const snapshot = await getDocs(collection(db, "PromoCodes"));
+    setPromos(snapshot.docs.map(d => ({id: d.id, ...d.data()})));
   };
 
   const handleImageChange = (e) => {
@@ -76,6 +86,29 @@ export default function Admin() {
     fetchProducts();
   };
 
+  const addPromo = async () => {
+    if (!promoForm.code || !promoForm.discount) { alert("Code and discount are required!"); return; }
+    if (isNaN(promoForm.discount) || Number(promoForm.discount) <= 0 || Number(promoForm.discount) > 100) {
+      alert("Discount must be a number between 1 and 100!"); return;
+    }
+    setPromoLoading(true);
+    await addDoc(collection(db, "PromoCodes"), {
+      code: promoForm.code.toUpperCase().trim(),
+      discount: Number(promoForm.discount),
+    });
+    setPromoSuccess("Promo code added!");
+    setPromoForm({code:"",discount:""});
+    fetchPromos();
+    setPromoLoading(false);
+    setTimeout(() => setPromoSuccess(""), 3000);
+  };
+
+  const deletePromo = async (id) => {
+    if (!window.confirm("Deactivate this promo code?")) return;
+    await deleteDoc(doc(db, "PromoCodes", id));
+    fetchPromos();
+  };
+
   const inputStyle = {width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif",fontSize:13,padding:"13px 16px",outline:"none",marginBottom:12,boxSizing:"border-box"};
 
   if (!authed) return (
@@ -108,7 +141,6 @@ export default function Admin() {
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
 
-        {/* Image Upload */}
         <p style={{fontSize:10,letterSpacing:3,color:"#b8924a",textTransform:"uppercase",marginBottom:8}}>Product Image</p>
         <input type="file" accept="image/*" onChange={handleImageChange}
           style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#6a5a48",fontFamily:"Montserrat,sans-serif",fontSize:12,padding:"10px 16px",marginBottom:12,boxSizing:"border-box",cursor:"pointer"}} />
@@ -122,6 +154,47 @@ export default function Admin() {
           style={{background:"linear-gradient(135deg,#b8924a,#e8c97a,#b8924a)",color:"#0d0d0d",border:"none",padding:"14px 28px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontWeight:600,letterSpacing:3,textTransform:"uppercase"}}>
           {uploading ? "Uploading Image..." : loading ? "Adding..." : "Add Product ✦"}
         </button>
+      </div>
+
+      {/* Promo Codes Section */}
+      <div style={{background:"#0f0f0f",border:"1px solid #2a2a2a",padding:"24px",marginBottom:40,maxWidth:600}}>
+        <h2 style={{fontSize:14,letterSpacing:3,color:"#b8924a",marginBottom:20,textTransform:"uppercase"}}>Promo Codes</h2>
+        {promoSuccess && <p style={{color:"#b8924a",marginBottom:12,fontSize:13}}>{promoSuccess}</p>}
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+          <input placeholder="Code (e.g. FYB25)" value={promoForm.code}
+            onChange={e=>setPromoForm({...promoForm,code:e.target.value.toUpperCase()})}
+            style={{...inputStyle,marginBottom:0}} />
+          <input placeholder="Discount % (e.g. 25)" value={promoForm.discount}
+            onChange={e=>setPromoForm({...promoForm,discount:e.target.value})}
+            style={{...inputStyle,marginBottom:0}} />
+        </div>
+
+        <button onClick={addPromo} disabled={promoLoading}
+          style={{background:"linear-gradient(135deg,#b8924a,#e8c97a,#b8924a)",color:"#0d0d0d",border:"none",padding:"12px 24px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontWeight:600,letterSpacing:3,textTransform:"uppercase",marginBottom:20}}>
+          {promoLoading ? "Adding..." : "Add Promo Code ✦"}
+        </button>
+
+        {/* Active Promos List */}
+        {promos.length === 0 ? (
+          <p style={{fontSize:12,color:"#4a3a28",letterSpacing:1}}>No active promo codes.</p>
+        ) : (
+          <>
+            <p style={{fontSize:10,letterSpacing:3,color:"#6a5a48",textTransform:"uppercase",marginBottom:12}}>Active Codes</p>
+            {promos.map(p => (
+              <div key={p.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:"#111",border:"1px solid #1c1c1c",padding:"12px 16px",marginBottom:8}}>
+                <div>
+                  <span style={{fontSize:14,color:"#b8924a",fontWeight:600,letterSpacing:2}}>{p.code}</span>
+                  <span style={{fontSize:11,color:"#6a5a48",marginLeft:12}}>{p.discount}% off</span>
+                </div>
+                <button onClick={() => deletePromo(p.id)}
+                  style={{background:"transparent",border:"1px solid #c0392b",color:"#c0392b",padding:"4px 12px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>
+                  Deactivate
+                </button>
+              </div>
+            ))}
+          </>
+        )}
       </div>
 
       {/* Products List */}
@@ -146,4 +219,4 @@ export default function Admin() {
       ))}
     </div>
   );
-        }
+            }
