@@ -313,7 +313,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
         <button onClick={onClose} style={{position:"absolute",top:14,right:18,background:"none",border:"none",color:"#444",fontSize:20,cursor:"pointer"}}>✕</button>
 
         {/* Image placeholder — swap with <img src={product.image}/> later */}
-        <div style={{width:"100%",height:190,background:product.bg,border:"1px solid #222",marginBottom:26,overflow:"hidden"}}>
+        <div style={{width:"100%",height:280,background:product.bg,border:"1px solid #222",marginBottom:26,overflow:"hidden"}}>
   {product.image
     ? <img src={product.image} alt={product.name} style={{width:"100%",height:"100%",objectFit:"cover"}} />
     : <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}><p style={{fontSize:9,letterSpacing:4,color:"#2a2018",textTransform:"uppercase"}}>Product Image</p></div>
