@@ -524,12 +524,44 @@ function Checkout({ cart, setPage }) {
   const [form, setForm] = useState({name:"",phone:"",email:"",address:"",city:"",state:"",delivery:""});
   const [placed, setPlaced] = useState(false);
   const [error, setError] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState(null);
+  const [promoError, setPromoError] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
   const set = (k,v) => setForm(prev => ({...prev,[k]:v}));
 
   const DELIVERY_FEES = {pickup:0, lagos:4000, outside:7000};
   const deliveryFee = DELIVERY_FEES[form.delivery] || 0;
   const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
-  const total = subtotal + deliveryFee;
+  const discountAmount = promoApplied ? Math.round(subtotal * (promoApplied.discount / 100)) : 0;
+  const total = subtotal - discountAmount + deliveryFee;
+
+  const applyPromo = async () => {
+    if (!promoCode.trim()) { setPromoError("Please enter a promo code."); return; }
+    setPromoLoading(true);
+    setPromoError("");
+    setPromoApplied(null);
+    try {
+      const snapshot = await getDocs(collection(db, "PromoCodes"));
+      const promos = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+      const found = promos.find(p => p.code === promoCode.toUpperCase().trim());
+      if (found) {
+        setPromoApplied(found);
+        setPromoError("");
+      } else {
+        setPromoError("Invalid or expired promo code.");
+      }
+    } catch (e) {
+      setPromoError("Something went wrong. Please try again.");
+    }
+    setPromoLoading(false);
+  };
+
+  const removePromo = () => {
+    setPromoApplied(null);
+    setPromoCode("");
+    setPromoError("");
+  };
 
   const handlePlace = () => {
     if (!form.name || !form.phone) { setError("Please fill in your name and phone number."); return; }
@@ -561,6 +593,8 @@ function Checkout({ cart, setPage }) {
             order_total: orderTotal,
             delivery_option: form.delivery === "pickup" ? "Pick Up (University of Lagos / Yaba Bridge / Apapa)" : form.delivery === "lagos" ? "Lagos Delivery" : "Outside Lagos",
             delivery_fee: fmt(deliveryFee),
+            promo_code: promoApplied ? promoApplied.code : "None",
+            discount: promoApplied ? `${promoApplied.discount}% off — ${fmt(discountAmount)} saved` : "None",
           },
           "wnDgfU8JigjpKDev-"
         );
@@ -605,6 +639,12 @@ function Checkout({ cart, setPage }) {
             </div>
           ))}
           <div style={{borderTop:"1px solid #1c1c1c",marginTop:12,paddingTop:12}}>
+            {promoApplied && (
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                <span style={{fontSize:10,letterSpacing:2,color:"#4CAF50",textTransform:"uppercase"}}>Discount ({promoApplied.discount}% off)</span>
+                <span style={{fontSize:12,color:"#4CAF50"}}>− {fmt(discountAmount)}</span>
+              </div>
+            )}
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
               <span style={{fontSize:10,letterSpacing:2,color:"#4a3a28",textTransform:"uppercase"}}>Delivery</span>
               <span style={{fontSize:12,color:"#b8924a"}}>{form.delivery ? (deliveryFee === 0 ? "FREE" : fmt(deliveryFee)) : "—"}</span>
@@ -618,7 +658,7 @@ function Checkout({ cart, setPage }) {
 
         {/* Delivery Details */}
         <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,textTransform:"uppercase",marginBottom:18}}>Delivery Details</p>
-        <input className="field" placeholder="Full Name *"   value={form.name}  onChange={e=>set("name",e.target.value)} />
+        <input className="field" placeholder="Full Name *"    value={form.name}  onChange={e=>set("name",e.target.value)} />
         <input className="field" placeholder="Phone Number *" value={form.phone} onChange={e=>set("phone",e.target.value)} />
         <input className="field" placeholder="Email Address"  value={form.email} onChange={e=>set("email",e.target.value)} />
 
@@ -663,6 +703,30 @@ function Checkout({ cart, setPage }) {
           </>
         )}
 
+        {/* Promo Code */}
+        <p style={{fontSize:9,letterSpacing:4,color:"#b8924a",fontWeight:600,textTransform:"uppercase",marginBottom:12}}>Promo Code</p>
+        {promoApplied ? (
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0a1a0a",border:"1px solid #4CAF50",padding:"13px 16px",marginBottom:20}}>
+            <span style={{fontSize:12,color:"#4CAF50"}}>✓ {promoApplied.code} — {promoApplied.discount}% off applied!</span>
+            <button onClick={removePromo} style={{background:"none",border:"none",color:"#c0392b",cursor:"pointer",fontSize:12,letterSpacing:1}}>Remove</button>
+          </div>
+        ) : (
+          <div style={{display:"flex",gap:10,marginBottom:8}}>
+            <input
+              className="field"
+              placeholder="Enter promo code"
+              value={promoCode}
+              onChange={e => setPromoCode(e.target.value.toUpperCase())}
+              style={{marginBottom:0,flex:1}}
+            />
+            <button onClick={applyPromo} disabled={promoLoading}
+              style={{background:"transparent",border:"1px solid #b8924a",color:"#b8924a",padding:"0 18px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase",flexShrink:0,transition:"all .3s"}}>
+              {promoLoading ? "..." : "Apply"}
+            </button>
+          </div>
+        )}
+        {promoError && <p style={{color:"#c0392b",fontSize:12,marginBottom:12,letterSpacing:1}}>{promoError}</p>}
+
         {error && <p style={{color:"#c0392b",fontSize:12,marginBottom:12,letterSpacing:1}}>{error}</p>}
         <button className="gold-btn" style={{width:"100%",padding:"16px 0",fontSize:11,borderRadius:0,marginBottom:12}} onClick={handlePlace}>
           Place Order & Pay ✦ 🖤
@@ -673,8 +737,8 @@ function Checkout({ cart, setPage }) {
       </div>
     </div>
   );
-              }
-
+      }
+  
 /* ───────── APP ROOT ───────── */
 export default function App() {
   const [page, setPage] = useState("landing");
