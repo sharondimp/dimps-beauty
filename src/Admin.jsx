@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { db } from "./firebase";
-import { collection, addDoc, deleteDoc, doc, getDocs } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore";
 
 const ADMIN_PASSWORD = "dimps2026";
 const IMGBB_API_KEY = "3c3465e192230bc0bca24a96d34d72f3";
@@ -20,6 +20,7 @@ export default function Admin() {
   const [promoLoading, setPromoLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [promoSuccess, setPromoSuccess] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   const login = () => {
     if (password === ADMIN_PASSWORD) {
@@ -70,6 +71,7 @@ export default function Admin() {
       ...form,
       price: Number(form.price),
       image: imageUrl || "",
+      inStock: true,
     });
     setSuccess("Product added!");
     setForm({name:"",price:"",tag:"",category:"Bone Straight",short:"",detail:"",bg:"#111111"});
@@ -78,6 +80,53 @@ export default function Admin() {
     fetchProducts();
     setLoading(false);
     setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const startEdit = (p) => {
+    setEditingId(p.id);
+    setForm({
+      name: p.name || "",
+      price: p.price || "",
+      tag: p.tag || "",
+      category: p.category || "Bone Straight",
+      short: p.short || "",
+      detail: p.detail || "",
+      bg: p.bg || "#111111",
+    });
+    setImagePreview(p.image || "");
+    setImageFile(null);
+    window.scrollTo(0, 0);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setForm({name:"",price:"",tag:"",category:"Bone Straight",short:"",detail:"",bg:"#111111"});
+    setImageFile(null);
+    setImagePreview("");
+  };
+
+  const saveEdit = async () => {
+    if (!form.name || !form.price) { alert("Name and price are required!"); return; }
+    setLoading(true);
+    let imageUrl = imagePreview;
+    if (imageFile) {
+      imageUrl = await uploadToImgBB() || imagePreview;
+    }
+    await updateDoc(doc(db, "Products", editingId), {
+      ...form,
+      price: Number(form.price),
+      image: imageUrl,
+    });
+    setSuccess("Product updated!");
+    cancelEdit();
+    fetchProducts();
+    setLoading(false);
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const toggleStock = async (p) => {
+    await updateDoc(doc(db, "Products", p.id), { inStock: !p.inStock });
+    fetchProducts();
   };
 
   const deleteProduct = async (id) => {
@@ -127,9 +176,11 @@ export default function Admin() {
     <div style={{minHeight:"100vh",background:"#080808",padding:"40px 5%",color:"#f0e6d3",fontFamily:"Montserrat,sans-serif"}}>
       <h1 style={{fontFamily:"'Cormorant Garamond',serif",color:"#b8924a",fontSize:32,marginBottom:32}}>Admin Dashboard</h1>
 
-      {/* Add Product Form */}
-      <div style={{background:"#0f0f0f",border:"1px solid #2a2a2a",padding:"24px",marginBottom:40,maxWidth:600}}>
-        <h2 style={{fontSize:14,letterSpacing:3,color:"#b8924a",marginBottom:20,textTransform:"uppercase"}}>Add New Product</h2>
+      {/* Add / Edit Product Form */}
+      <div style={{background:"#0f0f0f",border:`1px solid ${editingId ? "#b8924a" : "#2a2a2a"}`,padding:"24px",marginBottom:40,maxWidth:600}}>
+        <h2 style={{fontSize:14,letterSpacing:3,color:"#b8924a",marginBottom:20,textTransform:"uppercase"}}>
+          {editingId ? "✏️ Editing Product" : "Add New Product"}
+        </h2>
         {success && <p style={{color:"#b8924a",marginBottom:12,fontSize:13}}>{success}</p>}
 
         {[["name","Product Name"],["price","Price (numbers only)"],["tag","Tag (e.g. NEW IN)"],["short","Short description"],["detail","Full description"],["bg","Background color (e.g. #141414)"]].map(([key,placeholder]) => (
@@ -141,7 +192,9 @@ export default function Admin() {
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
 
-        <p style={{fontSize:10,letterSpacing:3,color:"#b8924a",textTransform:"uppercase",marginBottom:8}}>Product Image</p>
+        <p style={{fontSize:10,letterSpacing:3,color:"#b8924a",textTransform:"uppercase",marginBottom:8}}>
+          Product Image {editingId && "(leave empty to keep current image)"}
+        </p>
         <input type="file" accept="image/*" onChange={handleImageChange}
           style={{width:"100%",background:"#111",border:"1px solid #2a2a2a",color:"#6a5a48",fontFamily:"Montserrat,sans-serif",fontSize:12,padding:"10px 16px",marginBottom:12,boxSizing:"border-box",cursor:"pointer"}} />
 
@@ -150,10 +203,18 @@ export default function Admin() {
             style={{width:"100%",height:180,objectFit:"cover",border:"1px solid #2a2a2a",marginBottom:16}} />
         )}
 
-        <button onClick={addProduct} disabled={loading || uploading}
-          style={{background:"linear-gradient(135deg,#b8924a,#e8c97a,#b8924a)",color:"#0d0d0d",border:"none",padding:"14px 28px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontWeight:600,letterSpacing:3,textTransform:"uppercase"}}>
-          {uploading ? "Uploading Image..." : loading ? "Adding..." : "Add Product ✦"}
-        </button>
+        <div style={{display:"flex",gap:12}}>
+          <button onClick={editingId ? saveEdit : addProduct} disabled={loading || uploading}
+            style={{background:"linear-gradient(135deg,#b8924a,#e8c97a,#b8924a)",color:"#0d0d0d",border:"none",padding:"14px 28px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontWeight:600,letterSpacing:3,textTransform:"uppercase"}}>
+            {uploading ? "Uploading..." : loading ? "Saving..." : editingId ? "Save Changes ✦" : "Add Product ✦"}
+          </button>
+          {editingId && (
+            <button onClick={cancelEdit}
+              style={{background:"transparent",border:"1px solid #6a5a48",color:"#6a5a48",padding:"14px 24px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:11,letterSpacing:2,textTransform:"uppercase"}}>
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Promo Codes Section */}
@@ -162,10 +223,10 @@ export default function Admin() {
         {promoSuccess && <p style={{color:"#b8924a",marginBottom:12,fontSize:13}}>{promoSuccess}</p>}
 
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-          <input placeholder="Code (e.g. FYB25)" value={promoForm.code}
+          <input placeholder="Code (e.g. FYB20)" value={promoForm.code}
             onChange={e=>setPromoForm({...promoForm,code:e.target.value.toUpperCase()})}
             style={{...inputStyle,marginBottom:0}} />
-          <input placeholder="Discount % (e.g. 25)" value={promoForm.discount}
+          <input placeholder="Discount % (e.g. 20)" value={promoForm.discount}
             onChange={e=>setPromoForm({...promoForm,discount:e.target.value})}
             style={{...inputStyle,marginBottom:0}} />
         </div>
@@ -175,7 +236,6 @@ export default function Admin() {
           {promoLoading ? "Adding..." : "Add Promo Code ✦"}
         </button>
 
-        {/* Active Promos List */}
         {promos.length === 0 ? (
           <p style={{fontSize:12,color:"#4a3a28",letterSpacing:1}}>No active promo codes.</p>
         ) : (
@@ -200,23 +260,40 @@ export default function Admin() {
       {/* Products List */}
       <h2 style={{fontSize:14,letterSpacing:3,color:"#b8924a",marginBottom:20,textTransform:"uppercase"}}>All Products ({products.length})</h2>
       {products.map(p => (
-        <div key={p.id} style={{background:"#0f0f0f",border:"1px solid #1c1c1c",padding:"16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}>
-          <div style={{display:"flex",alignItems:"center",gap:14}}>
-            {p.image
-              ? <img src={p.image} alt={p.name} style={{width:52,height:52,objectFit:"cover",border:"1px solid #2a2a2a",flexShrink:0}} />
-              : <div style={{width:52,height:52,background:p.bg||"#111",border:"1px solid #2a2a2a",flexShrink:0}} />
-            }
-            <div>
-              <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,color:"#f0e6d3"}}>{p.name}</p>
-              <p style={{fontSize:11,color:"#6a5a48"}}>₦{p.price?.toLocaleString()} · {p.category} · {p.tag}</p>
+        <div key={p.id} style={{background:"#0f0f0f",border:"1px solid #1c1c1c",padding:"16px",marginBottom:12}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:14}}>
+              {p.image
+                ? <img src={p.image} alt={p.name} style={{width:52,height:52,objectFit:"cover",border:"1px solid #2a2a2a",flexShrink:0}} />
+                : <div style={{width:52,height:52,background:p.bg||"#111",border:"1px solid #2a2a2a",flexShrink:0}} />
+              }
+              <div>
+                <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,color:"#f0e6d3"}}>{p.name}</p>
+                <p style={{fontSize:11,color:"#6a5a48"}}>₦{p.price?.toLocaleString()} · {p.category} · {p.tag}</p>
+                <p style={{fontSize:10,marginTop:4,color: p.inStock === false ? "#c0392b" : "#4CAF50",letterSpacing:1}}>
+                  {p.inStock === false ? "● Out of Stock" : "● In Stock"}
+                </p>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{display:"flex",flexDirection:"column",gap:8,flexShrink:0}}>
+              <button onClick={() => startEdit(p)}
+                style={{background:"transparent",border:"1px solid #b8924a",color:"#b8924a",padding:"5px 12px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>
+                Edit
+              </button>
+              <button onClick={() => toggleStock(p)}
+                style={{background:"transparent",border:`1px solid ${p.inStock === false ? "#4CAF50" : "#e67e22"}`,color:p.inStock === false ? "#4CAF50" : "#e67e22",padding:"5px 12px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>
+                {p.inStock === false ? "In Stock" : "Out of Stock"}
+              </button>
+              <button onClick={() => deleteProduct(p.id)}
+                style={{background:"transparent",border:"1px solid #c0392b",color:"#c0392b",padding:"5px 12px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>
+                Delete
+              </button>
             </div>
           </div>
-          <button onClick={() => deleteProduct(p.id)}
-            style={{background:"transparent",border:"1px solid #c0392b",color:"#c0392b",padding:"6px 14px",cursor:"pointer",fontFamily:"Montserrat,sans-serif",fontSize:10,letterSpacing:2,textTransform:"uppercase",flexShrink:0}}>
-            Delete
-          </button>
         </div>
       ))}
     </div>
   );
-            }
+                        }
