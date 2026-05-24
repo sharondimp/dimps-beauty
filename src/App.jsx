@@ -299,6 +299,8 @@ function ProductModal({ product, onClose, onAddToCart }) {
     return () => { document.body.style.overflow = ""; };
   }, []);
 
+  const outOfStock = product.inStock === false;
+
   return (
     <div onClick={onClose} style={{
       position:"fixed",inset:0,zIndex:400,
@@ -312,13 +314,17 @@ function ProductModal({ product, onClose, onAddToCart }) {
       }}>
         <button onClick={onClose} style={{position:"absolute",top:14,right:18,background:"none",border:"none",color:"#444",fontSize:20,cursor:"pointer"}}>✕</button>
 
-        {/* Image placeholder — swap with <img src={product.image}/> later */}
-        <div style={{width:"100%",height:280,background:product.bg,border:"1px solid #222",marginBottom:26,overflow:"hidden"}}>
-  {product.image
-    ? <img src={product.image} alt={product.name} style={{width:"100%",height:"100%",objectFit:"cover"}} />
-    : <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}><p style={{fontSize:9,letterSpacing:4,color:"#2a2018",textTransform:"uppercase"}}>Product Image</p></div>
-  }
-</div>
+        <div style={{width:"100%",height:280,background:product.bg,border:"1px solid #222",marginBottom:26,overflow:"hidden",position:"relative"}}>
+          {product.image
+            ? <img src={product.image} alt={product.name} style={{width:"100%",height:"100%",objectFit:"cover"}} />
+            : <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}><p style={{fontSize:9,letterSpacing:4,color:"#2a2018",textTransform:"uppercase"}}>Product Image</p></div>
+          }
+          {outOfStock && (
+            <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <span style={{fontSize:12,letterSpacing:4,color:"#fff",fontWeight:700,textTransform:"uppercase",border:"1px solid #fff",padding:"8px 20px"}}>Out of Stock</span>
+            </div>
+          )}
+        </div>
 
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
           <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:22,fontWeight:600,color:"#f0e6d3"}}>{product.name}</h2>
@@ -328,10 +334,16 @@ function ProductModal({ product, onClose, onAddToCart }) {
         <p style={{fontSize:13,color:"#6a5a48",lineHeight:1.9,marginBottom:28}}>{product.detail}</p>
 
         <div style={{display:"flex",gap:12}}>
-          <button className="gold-btn" style={{flex:1,padding:"14px 0",fontSize:10,borderRadius:0}}
-            onClick={() => { onAddToCart(product); onClose(); }}>
-            Add to Cart
-          </button>
+          {outOfStock ? (
+            <button disabled style={{flex:1,padding:"14px 0",fontSize:10,background:"#1a1a1a",border:"1px solid #2a2a2a",color:"#4a3a28",letterSpacing:3,textTransform:"uppercase",cursor:"not-allowed"}}>
+              Out of Stock
+            </button>
+          ) : (
+            <button className="gold-btn" style={{flex:1,padding:"14px 0",fontSize:10,borderRadius:0}}
+              onClick={() => { onAddToCart(product); onClose(); }}>
+              Add to Cart
+            </button>
+          )}
           <button className="outline-btn" style={{padding:"14px 20px",fontSize:10,borderRadius:0}} onClick={onClose}>
             Close
           </button>
